@@ -145,6 +145,7 @@ dmypy.json
 objectDetection/datasets/**/*
 !objectDetection/datasets/**/
 !objectDetection/datasets/**/*.yaml
+!objectDetection/datasets/**/*.py
 runs/
 wandb/
 .DS_Store
