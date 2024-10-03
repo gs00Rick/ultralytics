@@ -141,7 +141,10 @@ dmypy.json
 
 # datasets and projects (ignore /datasets dir at root only to allow for docs/en/datasets dir)
 /datasets
-objectDetection/datasets/
+#忽略文件夹内容保留文件夹结构与.yaml文件
+objectDetection/datasets/**/*
+!objectDetection/datasets/**/
+!objectDetection/datasets/**/*.yaml
 runs/
 wandb/
 .DS_Store
