@@ -5,18 +5,63 @@ import shutil
 import json
 import xml.dom.minidom
 from tqdm import tqdm
-import argparse
+from objectDetection.utils import FilePathUtils
 
 
 class TT100K2COCO:
     def __init__(self):
-        self.original_datasets = 'tt100k'
+        self.original_datasets = 'tt_100k'
         self.to_datasets = 'coco'
+        self.tt100k_path = os.path.join(FilePathUtils.get_project_root(), "objectDetection", "datasets", "tt_100k")
+
+    def get_images_dir(self):
+        """
+        获取图像文件夹的路径
+
+        该方法将TT100K数据集的根路径与"images"目录名结合，构造出图像文件夹的完整路径并返回
+
+        :return: 图像文件夹的完整路径
+        """
+        images_path = os.path.join(self.tt100k_path, "images")
+        return images_path
+
+    def get_labels_dir(self):
+        """
+        获取标签文件夹的路径
+
+        该方法将TT100K数据集的根路径与"labels"目录名结合，构造出图像文件夹的完整路径并返回
+
+        :return: 标签文件夹的完整路径
+        """
+        labels_path = os.path.join(self.tt100k_path, "labels")
+        return labels_path
+
+    def create_tt100k_path_structures(self):
+        """
+        创建TT100K数据集的目录结构。
+
+        此方法旨在为TT100K数据集创建必要的目录结构，包括图片和标签的训练、验证和测试子目录。
+        使用os.makedirs函数，并设置exist_ok=True，以确保目录如果已存在不会引发错误。
+        """
+        try:
+            # 尝试创建文件夹
+            os.makedirs(self.tt100k_path, exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "images"), exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "labels"), exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "images", "test"), exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "images", "train"), exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "images", "val"), exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "labels", "test"), exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "labels", "train"), exist_ok=True)
+            os.makedirs(os.path.join(self.tt100k_path, "labels", "val"), exist_ok=True)
+        except Exception as e:
+            # 处理创建文件夹过程中可能出现的错误
+            print(f"创建文件夹出错: {e}")
 
     def class_statistics(self):
         # os.makedirs('annotations', exist_ok=True)
         # 存放数据的父路径，（要改成自己的）
-        parent_path = 'C:/Users/Administrator/Desktop/ObjectDetection/objectDetectionCode/tt100k_2021/'
+        parent_path = FilePathUtils.get_origin_datasets_paths(self.original_datasets)
 
         # 读TT100K原始数据集标注文件
         with open(os.path.join(parent_path, 'annotations_all.json')) as origin_json:
@@ -72,7 +117,7 @@ class TT100K2COCO:
         '''
         # os.makedirs('annotations2', exist_ok=True)
         # 存放数据的父路径，（要改成自己的）
-        parent_path = 'C:/Users/Administrator/Desktop/ObjectDetection/objectDetectionCode/tt100k_2021/'
+        parent_path = FilePathUtils.get_origin_datasets_paths(self.original_datasets)
 
         # 读TT100K原始数据集标注文件
         with open(os.path.join(parent_path, 'annotations_all.json')) as origin_json:
@@ -181,7 +226,7 @@ class TT100K2COCO:
             # 切换dataset的引用对象，从而划分数据集根据每个类别类别的总数量按7：2：1分为了train_set,val_set,test_set。
             # 其中每个图片所属类别根据该图片包含的类别的数量决定（归属为含有类别最多的类别）
             # target是符合条件的图片路径，也就是实例数大于100的图片（要改成自己的）
-            target = 'C:/Users/Administrator/Desktop/ObjectDetection/objectDetectionCode/ultralytics-main/objectDetection/datasets/images/'
+            target = self.get_images_dir()
             if num_rate < 0.7:
                 dataset = train_dataset
                 shutil.copyfile(parent_path + image_path, target + '/train/' + image_path.split("/")[1])
@@ -225,10 +270,10 @@ class TT100K2COCO:
                                       'width': W,
                                       'height': H})
 
-        jsonPath = "C:/Users/Administrator/Desktop/ObjectDetection/objectDetectionCode/ultralytics-main/objectDetection/"
+        jsonPath = self.get_labels_dir()
         # 保存结果。（下面这个 dataset/annotations/ 依旧要改成自己的实际路径，可以自己设置）
         for phase in ['train', 'val', 'test']:
-            json_name = os.path.join(jsonPath, 'datasets/annotations/{}.json'.format(phase))
+            json_name = os.path.join(jsonPath, '{}.json'.format(phase))
             with open(json_name, 'w', encoding="utf-8") as f:
                 if phase == 'train':
                     json.dump(train_dataset, f, ensure_ascii=False, indent=1)
@@ -269,10 +314,9 @@ class TT100K2COCO:
             return (x, y, w, h)
 
         # class_json = 'train'
-        json_file = os.path.join(
-            'C:/Users/Administrator/Desktop/ObjectDetection/objectDetectionCode/ultralytics-main/objectDetection/datasets/annotations/%s.json' % class_json)  # COCO Object Instance 类型的标注
+        json_file = os.path.join(self.get_labels_dir(), '%s.json' % class_json)  # COCO Object Instance 类型的标注
         # ana_txt_save_path = 'D:/jinxData/TT100K/data/dataset/annotations/train'  # 保存的路径
-        ana_txt_save_path = os.path.join('/objectDetection/datasets/labels/', class_json)  # 保存的路径
+        ana_txt_save_path = os.path.join(self.get_labels_dir(), class_json)  # 保存的路径
 
         data = json.load(open(json_file, 'r'))
         if not os.path.exists(ana_txt_save_path):
@@ -301,12 +345,13 @@ class TT100K2COCO:
             f_txt.close()
             # 这里的相对路径，是你yolo模型里数据集的路径，请根据自己的实际情况修改
             list_file.write(
-                '/%s/%s/%s.jpg\n' % ('C:/Users/Administrator/Desktop/ObjectDetection/objectDetectionCode/ultralytics-main/objectDetection/datasets/images/', class_json.format(), head))
+                '/%s/%s/%s.jpg\n' % (self.get_images_dir(), class_json.format(), head))
         list_file.close()
 
 
 if __name__ == '__main__':
     tt100k = TT100K2COCO()
+    tt100k.create_tt100k_path_structures()
     tt100k.class_statistics()
     tt100k.original_datasets2object_datasets_re()
     tt100k.coco_json2yolo_txt('val')

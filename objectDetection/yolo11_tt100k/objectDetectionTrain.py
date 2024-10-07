@@ -2,7 +2,7 @@ from ultralytics import YOLO
 
 if __name__ == '__main__':
     # 加载模型
-    model = YOLO(r'./cfg/yolov8.yaml')  # 不使用预训练权重训练
+    model = YOLO(r'./cfg/yolo11.yaml')  # 不使用预训练权重训练
     # model = YOLO(r'yolov8.yaml').load("yolov8n.pt")  # 使用预训练权重训练
     # 训练参数 ----------------------------------------------------------------------------------------------
     model.train(
